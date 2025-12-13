@@ -6,7 +6,10 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/carritos")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = {
+        "http://3.227.171.106",
+        "http://localhost:5173"
+})
 public class CarritoController {
 
     private final CarritoService carritoService;
@@ -29,7 +32,7 @@ public class CarritoController {
         return carritoService.addItem(usuarioId, productoId, cantidad);
     }
 
-    // UPDATE actualizar cantidad de un item
+    // PUT actualizar cantidad de un item
     @PutMapping("/usuario/{usuarioId}/items/{itemId}")
     public Carrito updateItemQuantity(@PathVariable Long usuarioId,
                                       @PathVariable Long itemId,
@@ -44,7 +47,7 @@ public class CarritoController {
         return carritoService.removeItem(usuarioId, itemId);
     }
 
-    // VACIAR carrito
+    // DELETE vaciar carrito
     @DeleteMapping("/usuario/{usuarioId}/items")
     public Carrito clearCart(@PathVariable Long usuarioId) {
         return carritoService.clearCart(usuarioId);

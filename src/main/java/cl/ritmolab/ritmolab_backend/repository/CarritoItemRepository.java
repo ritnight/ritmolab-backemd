@@ -2,6 +2,9 @@ package cl.ritmolab.ritmolab_backend.repository;
 
 import cl.ritmolab.ritmolab_backend.entity.CarritoItem;
 import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.Optional;
 
 public interface CarritoItemRepository extends JpaRepository<CarritoItem, Long> {
+    Optional<CarritoItem> findByCarritoIdAndProductoId(Long carritoId,
+                                                       Long productoId);
 }

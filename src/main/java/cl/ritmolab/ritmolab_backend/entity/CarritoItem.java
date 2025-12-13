@@ -11,30 +11,28 @@ public class CarritoItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // muchos items son de un carrito
     @ManyToOne
-    @JoinColumn(name = "carrito_id")
+    @JoinColumn(name = "carrito_id", nullable = false)
     @JsonBackReference
     private Carrito carrito;
 
-    // muchos items pueden ser del mismo producto
     @ManyToOne
-    @JoinColumn(name = "producto_id")
+    @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 
+    @Column(nullable = false)
     private Integer cantidad;
 
     public CarritoItem() {}
 
-    public CarritoItem(Long id, Carrito carrito, Producto producto, Integer cantidad) {
-        this.id = id;
+    public CarritoItem(Carrito carrito, Producto producto, Integer cantidad) {
         this.carrito = carrito;
         this.producto = producto;
         this.cantidad = cantidad;
     }
 
+    // Getters y setters
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
 
     public Carrito getCarrito() { return carrito; }
     public void setCarrito(Carrito carrito) { this.carrito = carrito; }
