@@ -42,15 +42,25 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // Swagger / OpenAPI
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        // Preflight CORS
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // API libre
-                        .requestMatchers("/api/**").permitAll()
-                        .anyRequest().permitAll()
-                );
+
+                        .requestMatchers("/api/auth/**").permitAll()
+
+                        // público: leer catálogo
+                        .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias/**").permitAll()
+
+                        // solo ADMIN: modificar catálogo
+                        .requestMatchers(HttpMethod.POST, "/api/productos/**", "/api/categorias/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,  "/api/productos/**", "/api/categorias/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE,"/api/productos/**", "/api/categorias/**").hasRole("ADMIN")
+
+
+                        .anyRequest().authenticated()
+                )
+                .httpBasic(Customizer.withDefaults());
 
         return http.build();
     }
+
 }
