@@ -3,8 +3,8 @@ package cl.ritmolab.ritmolab_backend.config;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
-
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
@@ -13,13 +13,14 @@ import org.springframework.context.annotation.Configuration;
                 title = "RitmoLab API",
                 version = "v1",
                 description = "API REST del backend de RitmoLab (productos, categorías, carritos, usuarios)"
-        )
+        ),
+        security = @SecurityRequirement(name = "bearerAuth") // <-- importante
 )
 @SecurityScheme(
         name = "bearerAuth",
         type = SecuritySchemeType.HTTP,
-        bearerFormat = "JWT",
-        scheme = "bearer"
+        scheme = "bearer",
+        bearerFormat = "JWT"
 )
 public class OpenApiConfig {
 }
