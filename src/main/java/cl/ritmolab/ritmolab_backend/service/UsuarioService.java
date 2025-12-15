@@ -1,10 +1,10 @@
 package cl.ritmolab.ritmolab_backend.service;
 
+import cl.ritmolab.ritmolab_backend.entity.Rol;
 import cl.ritmolab.ritmolab_backend.entity.Usuario;
 import cl.ritmolab.ritmolab_backend.repository.UsuarioRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 
@@ -12,9 +12,11 @@ import java.util.List;
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UsuarioService(UsuarioRepository usuarioRepository) {
+    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<Usuario> findAll() {
@@ -22,52 +24,36 @@ public class UsuarioService {
     }
 
     public Usuario findById(Long id) {
-        return usuarioRepository.findById(id).orElse(null);
+        return usuarioRepository.findById(id).orElseThrow();
     }
 
     public Usuario create(Usuario usuario) {
-        // validación email
+        // Forzar rol cliente
+        usuario.setRol(Rol.CLIENTE);
+
+        // Hashear password antes de guardar
+        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+
         if (usuarioRepository.existsByEmail(usuario.getEmail())) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Ya existe un usuario con el email " + usuario.getEmail()
-            );
+           throw new RuntimeException("Email ya registrado");
         }
 
         return usuarioRepository.save(usuario);
     }
 
-    public Usuario update(Long id, Usuario usuario) {
-        Usuario existente = usuarioRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Usuario con id " + id + " no encontrado"
-                ));
+    public Usuario update(Long id, Usuario cambios) {
+        Usuario u = usuarioRepository.findById(id).orElseThrow();
+        u.setNombre(cambios.getNombre());
+        u.setEmail(cambios.getEmail());
 
-        // validación cambio de email
-        if (!existente.getEmail().equals(usuario.getEmail()) &&
-                usuarioRepository.existsByEmail(usuario.getEmail())) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Ya existe un usuario con el email " + usuario.getEmail()
-            );
+        if (cambios.getPassword() != null && !cambios.getPassword().isBlank()) {
+            u.setPassword(passwordEncoder.encode(cambios.getPassword()));
         }
 
-        existente.setNombre(usuario.getNombre());
-        existente.setEmail(usuario.getEmail());
-        existente.setPassword(usuario.getPassword());
-        existente.setRol(usuario.getRol());
-
-        return usuarioRepository.save(existente);
+        return usuarioRepository.save(u);
     }
 
     public void delete(Long id) {
-        if (!usuarioRepository.existsById(id)) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Usuario con id " + id + " no encontrado"
-            );
-        }
         usuarioRepository.deleteById(id);
     }
 }

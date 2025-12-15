@@ -75,6 +75,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT,  "/api/productos/**", "/api/categorias/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE,"/api/productos/**", "/api/categorias/**").hasRole("ADMIN")
 
+                        // registro público
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
+
                         // TODO lo demás autenticado
                         .anyRequest().authenticated()
                 )
