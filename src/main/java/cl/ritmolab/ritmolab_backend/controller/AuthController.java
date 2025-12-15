@@ -2,6 +2,7 @@ package cl.ritmolab.ritmolab_backend.controller;
 
 import cl.ritmolab.ritmolab_backend.dto.LoginRequest;
 import cl.ritmolab.ritmolab_backend.dto.LoginResponse;
+import cl.ritmolab.ritmolab_backend.dto.MeResponse;
 import cl.ritmolab.ritmolab_backend.entity.Usuario;
 import cl.ritmolab.ritmolab_backend.repository.UsuarioRepository;
 import cl.ritmolab.ritmolab_backend.security.JwtService;
@@ -12,6 +13,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -40,12 +43,11 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
 
-        // Generar token con username/email desde auth
-        String token = jwtService.generateToken((org.springframework.security.core.userdetails.UserDetails) auth.getPrincipal());
+        String token = jwtService.generateToken(
+                (org.springframework.security.core.userdetails.UserDetails) auth.getPrincipal()
+        );
 
-        // Info extra para el front
-        Usuario u = usuarioRepository.findByEmail(request.getEmail())
-                .orElseThrow();
+        Usuario u = usuarioRepository.findByEmail(request.getEmail()).orElseThrow();
 
         LoginResponse resp = new LoginResponse(
                 token,
@@ -56,5 +58,19 @@ public class AuthController {
         );
 
         return ResponseEntity.ok(resp);
+    }
+
+    // /api/auth/me (PROTEGIDO)
+    @GetMapping("/me")
+    public ResponseEntity<?> me(Principal principal) {
+        String email = principal.getName(); // viene desde el SecurityContext (JWT)
+        Usuario u = usuarioRepository.findByEmail(email).orElseThrow();
+
+        return ResponseEntity.ok(new MeResponse(
+                u.getId(),
+                u.getNombre(),
+                u.getEmail(),
+                "ROLE_" + u.getRol().name()
+        ));
     }
 }

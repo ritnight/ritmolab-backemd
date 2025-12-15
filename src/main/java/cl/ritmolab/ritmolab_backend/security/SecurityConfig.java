@@ -58,14 +58,14 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .authorizeHttpRequests(auth -> auth
-                        // Swagger / OpenAPI
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-
-                        // Preflight CORS
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Auth público
-                        .requestMatchers("/api/auth/**").permitAll()
+                        // Auth público SOLO login
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+
+                        // /me protegido
+                        .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
 
                         // Público: leer catálogo
                         .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias/**").permitAll()
@@ -78,7 +78,6 @@ public class SecurityConfig {
                         // registro público
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
 
-                        // TODO lo demás autenticado
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
