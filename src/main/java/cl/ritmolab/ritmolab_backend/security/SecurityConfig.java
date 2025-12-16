@@ -8,8 +8,8 @@ import org.springframework.http.HttpMethod;
 
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -66,28 +66,33 @@ public class SecurityConfig {
 
                         // Auth
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.GET,  "/api/auth/me").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
 
                         // Registro
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
 
                         // Catálogo público (solo lectura)
-                        .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/categorias/**").permitAll()
 
-                        // Catálogo (ADMIN: escritura)
-                        .requestMatchers(HttpMethod.POST,   "/api/productos/**", "/api/categorias/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT,    "/api/productos/**", "/api/categorias/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/productos/**", "/api/categorias/**").hasRole("ADMIN")
-
-                        // Carrito (USER)
+                        // Carrito (CLIENTE)
                         .requestMatchers("/api/carritos/**").hasRole("CLIENTE")
 
-                        // Pedidos (USER: crear + ver)
+                        // Pedidos:
+                        // - CLIENTE crea y lista sus pedidos
                         .requestMatchers(HttpMethod.POST, "/api/pedidos/**").hasRole("CLIENTE")
                         .requestMatchers(HttpMethod.GET,  "/api/pedidos/**").hasRole("CLIENTE")
-
-                        // Pedidos (ADMIN: cambiar estado)
+                        // - ADMIN cambia estado
                         .requestMatchers(HttpMethod.PUT,  "/api/pedidos/**").hasRole("ADMIN")
+
+                        // Admin catálogo (crear/editar/borrar)
+                        .requestMatchers(HttpMethod.POST, "/api/productos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,  "/api/productos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE,"/api/productos/**").hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.POST, "/api/categorias/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,  "/api/categorias/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE,"/api/categorias/**").hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )
