@@ -19,6 +19,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -41,8 +43,9 @@ public class SecurityConfig {
                 "http://localhost:5173"
         ));
 
-        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -57,26 +60,46 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
+
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((req, res, e) ->
+                                res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
+                        )
+                        .accessDeniedHandler((req, res, e) ->
+                                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden")
+                        )
+                )
+
                 .authorizeHttpRequests(auth -> auth
+                        // swagger
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Auth público SOLO login
+                        // auth
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-
-                        // /me protegido
                         .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
 
-                        // Público: leer catálogo
+                        // registro
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
+
+                        // público: ver catálogo
                         .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias/**").permitAll()
 
-                        // ADMIN: modificar catálogo
+                        // admin: modificar catálogo
                         .requestMatchers(HttpMethod.POST, "/api/productos/**", "/api/categorias/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT,  "/api/productos/**", "/api/categorias/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE,"/api/productos/**", "/api/categorias/**").hasRole("ADMIN")
 
-                        // registro público
-                        .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
+                        // carrito (cliente/admin logueado)
+                        .requestMatchers("/api/carritos/**").authenticated()
+
+                        // pedidos:
+                        // - cliente: crear pedido y ver sus pedidos
+                        .requestMatchers(HttpMethod.POST, "/api/pedidos/usuario/**").authenticated()
+                        .requestMatchers(HttpMethod.GET,  "/api/pedidos/usuario/**").authenticated()
+
+                        // - admin: cambiar estado
+                        .requestMatchers(HttpMethod.PUT, "/api/pedidos/*/estado").hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )
