@@ -80,11 +80,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/productos/**", "/api/categorias/**").hasRole("ADMIN")
 
                         // Carrito (USER)
-                        .requestMatchers("/api/carritos/**").hasRole("USER")
+                        .requestMatchers("/api/carritos/**").hasRole("CLIENTE")
 
                         // Pedidos (USER: crear + ver)
-                        .requestMatchers(HttpMethod.POST, "/api/pedidos/**").hasRole("USER")
-                        .requestMatchers(HttpMethod.GET,  "/api/pedidos/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.POST, "/api/pedidos/**").hasRole("CLIENTE")
+                        .requestMatchers(HttpMethod.GET,  "/api/pedidos/**").hasRole("CLIENTE")
 
                         // Pedidos (ADMIN: cambiar estado)
                         .requestMatchers(HttpMethod.PUT,  "/api/pedidos/**").hasRole("ADMIN")
