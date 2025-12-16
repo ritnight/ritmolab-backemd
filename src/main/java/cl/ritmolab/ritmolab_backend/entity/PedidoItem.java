@@ -2,6 +2,8 @@ package cl.ritmolab.ritmolab_backend.entity;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "pedido_items")
 public class PedidoItem {
@@ -21,12 +23,12 @@ public class PedidoItem {
     @Column(nullable = false)
     private Integer cantidad;
 
-    @Column(nullable = false)
-    private Integer precioUnitario;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private java.math.BigDecimal precioUnitario;
 
     public PedidoItem() {}
 
-    public PedidoItem(Pedido pedido, Producto producto, Integer cantidad, Integer precioUnitario) {
+    public PedidoItem(Pedido pedido, Producto producto, Integer cantidad, java.math.BigDecimal precioUnitario) {
         this.pedido = pedido;
         this.producto = producto;
         this.cantidad = cantidad;
@@ -67,11 +69,11 @@ public class PedidoItem {
         this.cantidad = cantidad;
     }
 
-    public Integer getPrecioUnitario() {
+    public BigDecimal getPrecioUnitario() {
         return precioUnitario;
     }
 
-    public void setPrecioUnitario(Integer precioUnitario) {
+    public void setPrecioUnitario(BigDecimal precioUnitario) {
         this.precioUnitario = precioUnitario;
     }
 }
