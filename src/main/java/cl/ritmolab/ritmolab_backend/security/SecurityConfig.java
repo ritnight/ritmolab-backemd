@@ -19,8 +19,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import jakarta.servlet.http.HttpServletResponse;
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -60,46 +58,36 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
-
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((req, res, e) ->
-                                res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
-                        )
-                        .accessDeniedHandler((req, res, e) ->
-                                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden")
-                        )
-                )
-
                 .authorizeHttpRequests(auth -> auth
-                        // swagger
+
+                        // Swagger
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // auth
+                        // Auth
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
+                        .requestMatchers(HttpMethod.GET,  "/api/auth/me").authenticated()
 
-                        // registro
+                        // Registro
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
 
-                        // público: ver catálogo
+                        // Catálogo público (solo lectura)
                         .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias/**").permitAll()
 
-                        // admin: modificar catálogo
-                        .requestMatchers(HttpMethod.POST, "/api/productos/**", "/api/categorias/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT,  "/api/productos/**", "/api/categorias/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE,"/api/productos/**", "/api/categorias/**").hasRole("ADMIN")
+                        // Catálogo (ADMIN: escritura)
+                        .requestMatchers(HttpMethod.POST,   "/api/productos/**", "/api/categorias/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/api/productos/**", "/api/categorias/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/productos/**", "/api/categorias/**").hasRole("ADMIN")
 
-                        // carrito (cliente/admin logueado)
-                        .requestMatchers("/api/carritos/**").authenticated()
+                        // Carrito (USER)
+                        .requestMatchers("/api/carritos/**").hasRole("USER")
 
-                        // pedidos:
-                        // - cliente: crear pedido y ver sus pedidos
-                        .requestMatchers(HttpMethod.POST, "/api/pedidos/usuario/**").authenticated()
-                        .requestMatchers(HttpMethod.GET,  "/api/pedidos/usuario/**").authenticated()
+                        // Pedidos (USER: crear + ver)
+                        .requestMatchers(HttpMethod.POST, "/api/pedidos/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET,  "/api/pedidos/**").hasRole("USER")
 
-                        // - admin: cambiar estado
-                        .requestMatchers(HttpMethod.PUT, "/api/pedidos/*/estado").hasRole("ADMIN")
+                        // Pedidos (ADMIN: cambiar estado)
+                        .requestMatchers(HttpMethod.PUT,  "/api/pedidos/**").hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )
